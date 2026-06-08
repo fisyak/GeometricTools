@@ -3,7 +3,7 @@
 // Distributed under the Boost Software License, Version 1.0.
 // https://www.boost.org/LICENSE_1_0.txt
 // https://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
-// File Version: 8.0.2026.02.19
+// File Version: 8.0.2026.06.08
 
 #pragma once
 
@@ -140,7 +140,7 @@ namespace gte
                 if (number < 0)
                 {
                     mSign = -1;
-                    magnitude = -static_cast<uint32_t>(number);
+                    magnitude = static_cast<uint32_t>(-number);
                 }
                 else
                 {
@@ -193,7 +193,7 @@ namespace gte
                 if (number < 0)
                 {
                     mSign = -1;
-                    magnitude = -static_cast<uint64_t>(number);
+                    magnitude = static_cast<uint64_t>(-number);
                 }
                 else
                 {
