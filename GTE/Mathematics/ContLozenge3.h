@@ -3,207 +3,169 @@
 // Distributed under the Boost Software License, Version 1.0.
 // https://www.boost.org/LICENSE_1_0.txt
 // https://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
-// File Version: 8.0.2025.05.10
+// File Version: 8.0.2026.09.12
 
 #pragma once
 
+// The algorithm implemented here is in
+//   3D Game Engine Design:
+//   A Practical Approach to Real-Time Computer Graphics,
+//   2nd Edition by David Eberly,
+//   Morgan Kaufmann Publishers, San Francisco, December 2005
+//   Section 13.4.2 Lozenge Containing Points
+//
+// Compute the plane of the lozenge rectangle using least-squares fit.
+// Parallel planes are chosen close enough together so that all the data
+// points lie between them. The radius is half the distance between the
+// two planes. The half-cylinder and quarter-cylinder side pieces are
+// chosen using a method similar to that used for fitting by capsules.
+
+#include <Mathematics/Logger.h>
 #include <Mathematics/ApprGaussian3.h>
+#include <Mathematics/Cylinder3.h>
 #include <Mathematics/DistPointRectangle.h>
 #include <Mathematics/Lozenge3.h>
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <vector>
 
 namespace gte
 {
-    // Compute the plane of the lozenge rectangle using least-squares fit.
-    // Parallel planes are chosen close enough together so that all the data
-    // points lie between them.  The radius is half the distance between the
-    // two planes.  The half-cylinder and quarter-cylinder side pieces are
-    // chosen using a method similar to that used for fitting by capsules.
     template <typename Real>
-    bool GetContainer(int32_t numPoints, Vector3<Real> const* points, Lozenge3<Real>& lozenge)
+    bool GetContainer(std::int32_t numPoints, Vector3<Real> const* points, Lozenge3<Real>& lozenge)
     {
-        ApprGaussian3<Real> fitter;
+        LogAssert(numPoints >= 6, "Insufficient number of points for containment.");
+
+        Real const zero = static_cast<Real>(0);
+        Real const half = static_cast<Real>(0.5);
+        Real const one = static_cast<Real>(1);
+
+        // Fit the input points with a Gaussian distribution. The returned box
+        // center is the mean of the input points. The returned box axes are
+        // unit-length eigenvectors of the covariance matrix of the input
+        // points. The eigenvalues are return in increasing order.
+        ApprGaussian3<Real> fitter{};
         fitter.Fit(numPoints, points);
         OrientedBox3<Real> box = fitter.GetParameters();
 
-        Vector3<Real> diff = points[0] - box.center;
-        Real wMin = Dot(box.axis[0], diff);
-        Real wMax = wMin;
-        Real w;
-        for (int32_t i = 1; i < numPoints; ++i)
+        // Transform the input points to box coordinates. The box coordinates
+        // are P = C + y[0] * U[0] + y[1] * U[1] + y[2] * U[2], where C is the
+        // box center and U[j] are the box axis directions. Note that y[j] =
+        // Dot(U[j], P-C) for 0 <= j < 3. The transformed point is
+        // P = (y[0],y[1],y[2]), living in a coordinate system with origin
+        // (0,0,0) and having basis vectors (1,0,0), (0,1,0), and (0,0,1).
+        Matrix3x3<Real> rotate{};
+        rotate.SetCol(0, box.axis[0]);
+        rotate.SetCol(1, box.axis[1]);
+        rotate.SetCol(2, box.axis[2]);
+        std::vector<Vector3<Real>> P(numPoints);
+        for (std::size_t i = 0; i < P.size(); ++i)
         {
-            diff = points[i] - box.center;
-            w = Dot(box.axis[0], diff);
-            if (w < wMin)
+            P[i] = (points[i] - box.center) * rotate;
+        }
+
+        // Compute the box extents so that the box tightly fits the
+        // projections of the input points onto lines containing the box
+        // center and having direction vectors that are the eigenvectors.
+        Vector3<Real> min{ zero, zero, zero }, max{ zero, zero, zero };
+        for (auto const& point : P)
+        {
+            for (std::int32_t j = 0; j < 3; ++j)
             {
-                wMin = w;
-            }
-            else if (w > wMax)
-            {
-                wMax = w;
+                min[j] = std::min(point[j], min[j]);
+                max[j] = std::max(point[j], max[j]);
             }
         }
 
-        Real radius = (Real)0.5 * (wMax - wMin);
-        Real rSqr = radius * radius;
-        box.center += ((Real)0.5 * (wMax + wMin)) * box.axis[0];
-
-        Real aMin = std::numeric_limits<Real>::max();
-        Real aMax = -aMin;
-        Real bMin = std::numeric_limits<Real>::max();
-        Real bMax = -bMin;
-        Real discr, radical, u, v, test;
-        for (int32_t i = 0; i < numPoints; ++i)
+        // Translate the box center to be the average of the extremes.
+        for (std::int32_t j = 0; j < 3; ++j)
         {
-            diff = points[i] - box.center;
-            u = Dot(box.axis[2], diff);
-            v = Dot(box.axis[1], diff);
-            w = Dot(box.axis[0], diff);
-            discr = rSqr - w * w;
-            radical = std::sqrt(std::max(discr, (Real)0));
-
-            test = u + radical;
-            if (test < aMin)
-            {
-                aMin = test;
-            }
-
-            test = u - radical;
-            if (test > aMax)
-            {
-                aMax = test;
-            }
-
-            test = v + radical;
-            if (test < bMin)
-            {
-                bMin = test;
-            }
-
-            test = v - radical;
-            if (test > bMax)
-            {
-                bMax = test;
-            }
+            box.center += half * (max[j] + min[j]) * box.axis[j];
+            box.extent[j] = half * (max[j] - min[j]);
         }
 
-        // The enclosing region might be a capsule or a sphere.
-        if (aMin >= aMax)
+        // Translate the input points based on the new box center.
+        for (std::size_t i = 0; i < P.size(); ++i)
         {
-            test = (Real)0.5 * (aMin + aMax);
-            aMin = test;
-            aMax = test;
-        }
-        if (bMin >= bMax)
-        {
-            test = (Real)0.5 * (bMin + bMax);
-            bMin = test;
-            bMax = test;
+            P[i] = (points[i] - box.center) * rotate;
         }
 
-        // Make correction for points inside mitered corner but outside quarter
-        // sphere.
-        for (int32_t i = 0; i < numPoints; ++i)
+        // Compute the axis-aligned lozenge containing the points. The radius
+        // of the lozenge is chosen to be the extent of the box in the
+        // box.axis[0] direction, which is the eigenvector of the covariance
+        // matrix corresponding to the minimum eigenvalue.
+        Real radius = box.extent[0];
+        Real radiusSqr = radius * radius;
+        
+        Real yCenter0 = radius - box.extent[1];  // yCenter0 < 0
+        Real yCenter1 = box.extent[1] - radius;  // yCenter1 > 0
+        Real zCenter0 = radius - box.extent[2];  // zCenter0 < 0
+        Real zCenter1 = box.extent[2] - radius;  // zCenter1 > 0
+        for (std::size_t i = 0; i < P.size(); ++i)
         {
-            diff = points[i] - box.center;
-            u = Dot(box.axis[2], diff);
-            v = Dot(box.axis[1], diff);
+            auto const& source = P[i];
+            Vector2<Real> diff{};
+            Real lengthSqr{};
 
-            Real* aExtreme = nullptr;
-            Real* bExtreme = nullptr;
-
-            if (u > aMax)
+            if (source[1] < yCenter0)
             {
-                if (v > bMax)
+                diff = { source[0], source[1] - yCenter0 };
+                lengthSqr = Dot(diff, diff);
+                if (lengthSqr > radiusSqr)
                 {
-                    aExtreme = &aMax;
-                    bExtreme = &bMax;
-                }
-                else if (v < bMin)
-                {
-                    aExtreme = &aMax;
-                    bExtreme = &bMin;
-                }
-            }
-            else if (u < aMin)
-            {
-                if (v > bMax)
-                {
-                    aExtreme = &aMin;
-                    bExtreme = &bMax;
-                }
-                else if (v < bMin)
-                {
-                    aExtreme = &aMin;
-                    bExtreme = &bMin;
+                    yCenter0 = source[1] - std::sqrt(std::max(radiusSqr - source[0] * source[0] - source[2] * source[2], zero));
                 }
             }
 
-            if (aExtreme)
+            if (source[1] > yCenter1)
             {
-                Real deltaU = u - *aExtreme;
-                Real deltaV = v - *bExtreme;
-                Real deltaSumSqr = deltaU * deltaU + deltaV * deltaV;
-                w = Dot(box.axis[0], diff);
-                Real wSqr = w * w;
-                test = deltaSumSqr + wSqr;
-                if (test > rSqr)
+                diff = { source[0], source[1] - yCenter1 };
+                lengthSqr = Dot(diff, diff);
+                if (lengthSqr > radiusSqr)
                 {
-                    discr = (rSqr - wSqr) / deltaSumSqr;
-                    Real t = -std::sqrt(std::max(discr, (Real)0));
-                    *aExtreme = u + t * deltaU;
-                    *bExtreme = v + t * deltaV;
+                    yCenter1 = source[1] + std::sqrt(std::max(radiusSqr - source[0] * source[0] - source[2] * source[2], zero));
+                }
+            }
+
+            if (source[2] < zCenter0)
+            {
+                diff = { source[0], source[2] - zCenter0  };
+                lengthSqr = Dot(diff, diff);
+                if (lengthSqr > radiusSqr)
+                {
+                    zCenter0 = source[2] - std::sqrt(std::max(radiusSqr - source[0] * source[0] - source[1] * source[1], zero));
+                }
+            }
+
+            if (source[2] > zCenter1)
+            {
+                diff = { source[0], source[2] - zCenter1 };
+                lengthSqr = Dot(diff, diff);
+                if (lengthSqr > radiusSqr)
+                {
+                    zCenter1 = source[2] + std::sqrt(std::max(radiusSqr - source[0] * source[0] - source[1] * source[1], zero));
                 }
             }
         }
 
+        // Set the axis-aligned lozenge parameters.
+        lozenge.rectangle.center[0] = zero;
+        lozenge.rectangle.center[1] = half * (yCenter1 + yCenter0);
+        lozenge.rectangle.center[2] = half * (zCenter1 + zCenter0);
+        lozenge.rectangle.axis[0] = { zero, one, zero };
+        lozenge.rectangle.axis[1] = { zero, zero, one };
+        lozenge.rectangle.extent[0] = half * (yCenter1 - yCenter0);
+        lozenge.rectangle.extent[1] = half * (zCenter1 - zCenter0);
         lozenge.radius = radius;
-        lozenge.rectangle.axis[0] = box.axis[2];
-        lozenge.rectangle.axis[1] = box.axis[1];
 
-        if (aMin < aMax)
-        {
-            if (bMin < bMax)
-            {
-                // Container is a lozenge.
-                lozenge.rectangle.center =
-                    box.center + aMin * box.axis[2] + bMin * box.axis[1];
-                lozenge.rectangle.extent[0] = (Real)0.5 * (aMax - aMin);
-                lozenge.rectangle.extent[1] = (Real)0.5 * (bMax - bMin);
-            }
-            else
-            {
-                // Container is a capsule.
-                lozenge.rectangle.center = box.center + aMin * box.axis[2] +
-                    ((Real)0.5 * (bMin + bMax)) * box.axis[1];
-                lozenge.rectangle.extent[0] = (Real)0.5 * (aMax - aMin);
-                lozenge.rectangle.extent[1] = (Real)0;
-            }
-        }
-        else
-        {
-            if (bMin < bMax)
-            {
-                // Container is a capsule.
-                lozenge.rectangle.center = box.center + bMin * box.axis[1] +
-                    ((Real)0.5 * (aMin + aMax)) * box.axis[2];
-                lozenge.rectangle.extent[0] = (Real)0;
-                lozenge.rectangle.extent[1] = (Real)0.5 * (bMax - bMin);
-            }
-            else
-            {
-                // Container is a sphere.
-                lozenge.rectangle.center = box.center +
-                    ((Real)0.5 * (aMin + aMax)) * box.axis[2] +
-                    ((Real)0.5 * (bMin + bMax)) * box.axis[1];
-                lozenge.rectangle.extent[0] = (Real)0;
-                lozenge.rectangle.extent[1] = (Real)0;
-            }
-        }
-
+        // Transform the lozenge to the original space of the input
+        // points.
+        lozenge.rectangle.center = box.center + rotate * lozenge.rectangle.center;
+        lozenge.rectangle.axis[0] = rotate * lozenge.rectangle.axis[0];
+        lozenge.rectangle.axis[1] = rotate * lozenge.rectangle.axis[1];
         return true;
     }
 

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.1.11312.151 d18.0
+VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{B3B0F59D-7352-4931-BD3E-C5C6A083AB93}"
 EndProject
@@ -748,6 +748,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VisualizeMarchingCubesDX11.v18", "Samples\Imagics\VisualizeMarchingCubes\VisualizeMarchingCubesDX11.v18.vcxproj", "{35EA9D60-AFDA-4717-A62B-9814D1C00952}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VisualizeMarchingCubesGL46.v18", "Samples\Imagics\VisualizeMarchingCubes\VisualizeMarchingCubesGL46.v18.vcxproj", "{3687AC2C-1C36-46A7-AC91-BFDBAA30B788}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ContLozenge3DX11.v18", "Samples\Mathematics\ContLozenge3\ContLozenge3DX11.v18.vcxproj", "{130725C6-48B7-470B-8961-5FC9B3A5F91E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ContLozenge3GL46.v18", "Samples\Mathematics\ContLozenge3\ContLozenge3GL46.v18.vcxproj", "{32ACD66F-69FB-497C-B296-B128D30E46B6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -3517,6 +3521,22 @@ Global
 		{3687AC2C-1C36-46A7-AC91-BFDBAA30B788}.Release|x64.Build.0 = Release|x64
 		{3687AC2C-1C36-46A7-AC91-BFDBAA30B788}.Release|x86.ActiveCfg = Release|Win32
 		{3687AC2C-1C36-46A7-AC91-BFDBAA30B788}.Release|x86.Build.0 = Release|Win32
+		{130725C6-48B7-470B-8961-5FC9B3A5F91E}.Debug|x64.ActiveCfg = Debug|x64
+		{130725C6-48B7-470B-8961-5FC9B3A5F91E}.Debug|x64.Build.0 = Debug|x64
+		{130725C6-48B7-470B-8961-5FC9B3A5F91E}.Debug|x86.ActiveCfg = Debug|Win32
+		{130725C6-48B7-470B-8961-5FC9B3A5F91E}.Debug|x86.Build.0 = Debug|Win32
+		{130725C6-48B7-470B-8961-5FC9B3A5F91E}.Release|x64.ActiveCfg = Release|x64
+		{130725C6-48B7-470B-8961-5FC9B3A5F91E}.Release|x64.Build.0 = Release|x64
+		{130725C6-48B7-470B-8961-5FC9B3A5F91E}.Release|x86.ActiveCfg = Release|Win32
+		{130725C6-48B7-470B-8961-5FC9B3A5F91E}.Release|x86.Build.0 = Release|Win32
+		{32ACD66F-69FB-497C-B296-B128D30E46B6}.Debug|x64.ActiveCfg = Debug|x64
+		{32ACD66F-69FB-497C-B296-B128D30E46B6}.Debug|x64.Build.0 = Debug|x64
+		{32ACD66F-69FB-497C-B296-B128D30E46B6}.Debug|x86.ActiveCfg = Debug|Win32
+		{32ACD66F-69FB-497C-B296-B128D30E46B6}.Debug|x86.Build.0 = Debug|Win32
+		{32ACD66F-69FB-497C-B296-B128D30E46B6}.Release|x64.ActiveCfg = Release|x64
+		{32ACD66F-69FB-497C-B296-B128D30E46B6}.Release|x64.Build.0 = Release|x64
+		{32ACD66F-69FB-497C-B296-B128D30E46B6}.Release|x86.ActiveCfg = Release|Win32
+		{32ACD66F-69FB-497C-B296-B128D30E46B6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -3893,6 +3913,8 @@ Global
 		{8E29A4EC-6817-474F-BDDB-B1CD9E9A09A5} = {0E165AD7-8E83-484C-A5AD-755CE2A50A44}
 		{35EA9D60-AFDA-4717-A62B-9814D1C00952} = {787110F0-15A7-4EBC-A6C0-C355FDE9D6BD}
 		{3687AC2C-1C36-46A7-AC91-BFDBAA30B788} = {E5671965-B534-4E47-8BEC-E6BD8C2FDC7B}
+		{130725C6-48B7-470B-8961-5FC9B3A5F91E} = {49E5D5C3-9BEE-40DA-96B2-04F54AE44BB6}
+		{32ACD66F-69FB-497C-B296-B128D30E46B6} = {0E165AD7-8E83-484C-A5AD-755CE2A50A44}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8622DED6-57B4-4999-85C8-1B6273596843}
