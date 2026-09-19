@@ -3,7 +3,7 @@
 // Distributed under the Boost Software License, Version 1.0.
 // https://www.boost.org/LICENSE_1_0.txt
 // https://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
-// File Version: 8.0.2025.05.10
+// File Version: 8.0.2026.09.19
 
 #pragma once
 
@@ -16,14 +16,16 @@
 // The circle is C + r * U(s), where C is the center, r > 0 is the radius,
 // and U(s) = (cos(s), sin(s)) for s in [0,2*pi).
 //
-// The number of pairs of closest points is result.numClosestPairs which is
-// 1 or 2. If result.numClosestPairs is 1, result.parameter[0] is the ray
-// t-value for its closest point result.closest[0][0]. The circle closest
-// point is result.closest[0][1]. If result.numClosestPairs is 2,
-// result.parameter[0] and result.parameter[1] are the ray t-values for its
-// closest points result.closest[0][0] and result.closest[1][0]. The circle
-// closest points are result.closest[0][1] and result.closest[1][1].
+// The number of pairs of closest points is lcResult.numClosestPairs which is
+// 1 or 2. If lcResult.numClosestPairs is 1, lcResult.parameter[0] is the ray
+// t-value for its closest point lcResult.closest[0][0]. The circle closest
+// point is lcResult.closest[0][1]. If lcResult.numClosestPairs is 2,
+// lcResult.parameter[0] and lcResult.parameter[1] are the ray t-values for
+// its closest points lcResult.closest[0][0] and lcResult.closest[1][0]. The
+// circle closest points are lcResult.closest[0][1] and
+// lcResult.closest[1][1].
 
+#include <Mathematics/Logger.h>
 #include <Mathematics/DistLine2Circle2.h>
 #include <Mathematics/DistPoint2Circle2.h>
 #include <Mathematics/Ray.h>
@@ -39,6 +41,11 @@ namespace gte
 
         Result operator()(Ray2<T> const& ray, Circle2<T> const& circle)
         {
+            LogAssert(
+                ray.direction != Vector2<T>::Zero() &&
+                circle.radius > static_cast<T>(0),
+                "Invalid input.");
+
             // Execute the query for line-circle.
             T const zero = static_cast<T>(0);
             Line2<T> line(ray.origin, ray.direction);
@@ -119,5 +126,3 @@ namespace gte
         }
     };
 }
-
-

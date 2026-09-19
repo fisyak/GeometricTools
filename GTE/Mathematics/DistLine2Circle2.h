@@ -3,7 +3,7 @@
 // Distributed under the Boost Software License, Version 1.0.
 // https://www.boost.org/LICENSE_1_0.txt
 // https://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
-// File Version: 8.0.2025.05.10
+// File Version: 8.0.2026.09.19
 
 #pragma once
 
@@ -24,6 +24,7 @@
 // closest points result.closest[0][0] and result.closest[1][0]. The circle
 // closest points are result.closest[0][1] and result.closest[1][1].
 
+#include <Mathematics/Logger.h>
 #include <Mathematics/DCPQuery.h>
 #include <Mathematics/Hypersphere.h>
 #include <Mathematics/Line.h>
@@ -62,6 +63,11 @@ namespace gte
 
         Result operator()(Line2<T> const& line, Circle2<T> const& circle)
         {
+            LogAssert(
+                line.direction != Vector2<T>::Zero() &&
+                circle.radius > static_cast<T>(0),
+                "Invalid input.");
+
             Result result{};
 
             // Translate the line and circle so that the circle has center at
