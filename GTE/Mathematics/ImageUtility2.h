@@ -3,7 +3,7 @@
 // Distributed under the Boost Software License, Version 1.0.
 // https://www.boost.org/LICENSE_1_0.txt
 // https://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
-// File Version: 8.0.2026.08.07
+// File Version: 8.0.2026.09.20
 
 #pragma once
 
@@ -79,7 +79,7 @@ namespace gte
                     {
                         std::size_t v = vstack[top];
                         image[v] = -1;
-                        std::int32_t j;
+                        std::size_t j;
                         for (j = 0; j < numNeighbors; ++j)
                         {
                             std::size_t adj = v + neighbors[j];

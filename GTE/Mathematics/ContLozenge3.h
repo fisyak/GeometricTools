@@ -3,7 +3,7 @@
 // Distributed under the Boost Software License, Version 1.0.
 // https://www.boost.org/LICENSE_1_0.txt
 // https://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
-// File Version: 8.0.2026.09.12
+// File Version: 8.0.2026.09.20
 
 #pragma once
 
@@ -25,6 +25,8 @@
 #include <Mathematics/Cylinder3.h>
 #include <Mathematics/DistPointRectangle.h>
 #include <Mathematics/Lozenge3.h>
+#include <Mathematics/Matrix3x3.h>
+#include <Mathematics/Vector2.h>
 #include <algorithm>
 #include <cmath>
 #include <cstddef>

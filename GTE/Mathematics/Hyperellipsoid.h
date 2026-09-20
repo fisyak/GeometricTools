@@ -3,7 +3,7 @@
 // Distributed under the Boost Software License, Version 1.0.
 // https://www.boost.org/LICENSE_1_0.txt
 // https://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
-// File Version: 8.0.2026.08.10
+// File Version: 8.0.2026.09.20
 
 #pragma once
 
@@ -116,14 +116,12 @@ namespace gte
             // quadratic terms. The i-values in coeff[i] for the quadratic
             // terms satisfy: N + 1 <= i < (N+1)*(N+2)/2
             Real maxValue = static_cast<Real>(0);
-            int32_t maxIndex = -1;
             for (int32_t i = N + 1; i < numCoefficients; ++i)
             {
                 Real absValue = std::fabs(coeff[i]);
                 if (absValue > maxValue)
                 {
                     maxValue = absValue;
-                    maxIndex = i;
                 }
             }
 
